@@ -21,7 +21,7 @@ const newTorSession = () => {
             }
             resolve(undefined)
           });
-        }, 100)
+        }, 200)
       }
     })
   })
@@ -68,7 +68,7 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
           retries--
           killBrowser(retries)
         }
-      }, 100);
+      }, 200);
     }
   }
   try {
