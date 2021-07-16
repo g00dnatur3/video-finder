@@ -77,7 +77,7 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
     const html = await page.$eval("html", (e) => e.outerHTML);
     await browser.close();
     killBrowser() // always kill it - make sure its DEAD
-    if (html.includes("captcha") ||
+    if (html.includes("cf-captcha-info") ||
         html.includes("502: Bad gateway") ||
         html.includes("403 Forbidden") ||
         html.includes("Database maintenance") ||
@@ -90,6 +90,8 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
         if (retryCount > 0) {
           retryCount--
           return getPageHtml(url, retryCount, true)
+        } else {
+          return undefined
         }
     }
     return html
