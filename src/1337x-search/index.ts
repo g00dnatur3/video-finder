@@ -46,7 +46,7 @@ const getCached = async (url) => {
   return undefined
 }
 
-export const getPageHtml = async (url, retryCount=9, useTor=false) => {
+export const getPageHtml = async (url, retryCount=10, useTor=false) => {
   console.log(`PUPPETEER_GET_PAGE:`, url)
   const args = ['--no-sandbox'];
   if (useTor) {
@@ -54,7 +54,7 @@ export const getPageHtml = async (url, retryCount=9, useTor=false) => {
   }
   const browser = await puppeteer.launch({args});
   const process = browser.process()
-  const killBrowser = (retries=5) => {
+  const killBrowser = (retries=10) => {
     if (retries === 0) {
       return // exit condition
     }
@@ -65,7 +65,7 @@ export const getPageHtml = async (url, retryCount=9, useTor=false) => {
           retries--
           killBrowser(retries)
         }
-      }, 200);
+      }, 100);
     }
   }
   try {
