@@ -85,8 +85,8 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
         html.includes("Checking your browser before accessing") ||
         html.includes("Origin DNS error")) {
         console.log(`ERR: getPageHtml - BAD_RESULT_URL: \n ${url}`)
-        console.log('HTML:\n', html)
-        console.log()
+        // console.log('HTML:\n', html)
+        // console.log()
         await newTorSession()
         if (retryCount > 0) {
           retryCount--
