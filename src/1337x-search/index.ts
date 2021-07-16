@@ -50,7 +50,7 @@ const getCached = async (url) => {
 
 export const getPageHtml = async (url, retryCount=10, useTor=false) => {
   console.log(`PUPPETEER_GET_PAGE:`, url)
-  const args = ['--no-sandbox'];
+  const args = ['--no-sandbox', '--incognito'];
   if (useTor) {
     args.push('--proxy-server=socks5://127.0.0.1:9050')
   }
