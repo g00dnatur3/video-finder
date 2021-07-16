@@ -12,14 +12,16 @@ const newTorSession = () => {
       if (err) {
         reject(err)
       } else {
-        tr.request('https://api.ipify.org', function (err, res, body) {
-          if (!err && res.statusCode == 200) {
-            console.log("Your public (through Tor) IP is: " + body);
-          } else {
-            console.log('failed to get ip')
-          }
-          resolve(undefined)
-        });        
+        setTimeout(() => {
+          tr.request('https://api.ipify.org', function (err, res, body) {
+            if (!err && res.statusCode == 200) {
+              console.log("Your public (through Tor) IP is: " + body);
+            } else {
+              console.log('failed to get ip')
+            }
+            resolve(undefined)
+          });
+        }, 100)
       }
     })
   })
