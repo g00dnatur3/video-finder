@@ -54,6 +54,7 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
   if (useTor) {
     args.push('--proxy-server=socks5://127.0.0.1:9050')
   }
+  console.log('PUPPETEER_ARGS:', args)
   const browser = await puppeteer.launch({args});
   const process = browser.process()
   const killBrowser = (retries=10) => {
