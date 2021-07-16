@@ -1,0 +1,41 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+coverage
+
+src/client/**/*.js
+src/model/**/*.js
+src/utils/**/*.js
+
+# Dependency directories
+node_modules
+
+# Optional npm cache directory
+.npm
+
+# Prod Bundle
+build
+dist
+
+.nyc_output
+.DS_Store
+
+bundle.js
+bundle.js.map
+.vscode
+
+target
+.project
+.settings
+.g8
+.classpath
+.cache-main
+.cache-tests
+
+zfserver.pem
+
+zip.csv
+
+.DS_Store
+
