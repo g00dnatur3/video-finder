@@ -3,18 +3,37 @@ process.title = 'video-finder-server'
 import bodyParser from 'body-parser';
 import {NextFunction, Request, Response} from 'express';
 import express from 'express';
-import fs from 'fs';
 import * as http from 'http';
-import * as https from 'https';
 import morgan from 'morgan';
-import path from 'path';
+import HttpError from './HttpError';
+import errorHanlder from './errorHandler';
+import Controller from './Controller';
 
-import LeetXSearch from '../1337x-search'
+const app: express.Application = express();
+app.use(morgan('dev')); // logging middleware
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use('/api', Controller);
 
-;(async () => {
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const fullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
+  const err = new HttpError(`not found:${fullUrl}`);
+  err.status = 404;
+  next(err);
+});
+app.use(errorHanlder);
 
-  const results = await LeetXSearch.search('shrek', 1)
-  console.log('results:', results)
+const httpServer = http.createServer(app)
 
-})()
-  .catch(err => console.log(err))
+const port = 9099
+httpServer.listen(port, () => {
+  console.log(`Listening on port ${port}`);
+});
+
+// ;(async () => {
+
+//   const results = await LeetXSearch.search('shrek', 1)
+//   console.log('results:', results)
+
+// })()
+//   .catch(err => console.log(err))
