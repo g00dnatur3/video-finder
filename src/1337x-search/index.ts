@@ -55,7 +55,8 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
     args.push('--proxy-server=socks5://127.0.0.1:9050')
   }
   console.log('PUPPETEER_ARGS:', args)
-  const browser = await puppeteer.launch({args});
+  const browser = await puppeteer.launch(args);
+  const context = await browser.createIncognitoBrowserContext();
   const process = browser.process()
   const killBrowser = (retries=10) => {
     if (retries === 0) {
@@ -72,7 +73,7 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
     }
   }
   try {
-    const page = await browser.newPage();
+    const page = await context.newPage();
     await page.setDefaultNavigationTimeout(90000);
     await page.goto(url);
     const html = await page.$eval("html", (e) => e.outerHTML);
