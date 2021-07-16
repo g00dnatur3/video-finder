@@ -3,17 +3,40 @@ const HTMLParser = require('node-html-parser')
 const sortBy = require('sort-by')
 // const schema = require('warlock-schema')
 // const knex = schema.getKnex(null, 'utf8mb4_unicode_ci');
+const tr = require('tor-request');
+tr.TorControlPort.password = 'giraffe'
+
+const newTorSession = () => {
+  return new Promise((resolve, reject) => {
+    tr.newTorSession(async (err) => {
+      if (err) {
+        reject(err)
+      } else {
+        tr.request('https://api.ipify.org', function (err, res, body) {
+          if (!err && res.statusCode == 200) {
+            console.log("Your public (through Tor) IP is: " + body);
+          } else {
+            console.log('failed to get ip')
+          }
+          resolve(undefined)
+        });        
+      }
+    })
+  })
+}
 
 const MIRRORS = [
   'https://www.1337x.to'
 ]
 
-const CATEGORIES = [
-  'Movies',
-  'TV'
-]
+// const CATEGORIES = [
+//   'Movies',
+//   'TV'
+// ]
 
-const SEARCH_PATH = '/sort-category-search/$TERM/$CATEGORY/seeders/desc/$PAGE/'
+// const SEARCH_PATH = '/sort-category-search/$TERM/$CATEGORY/seeders/desc/$PAGE/'
+
+const SEARCH_PATH = '/sort-search/$TERM/seeders/desc/$PAGE/'
 
 const getCached = async (url) => {
   // const rows = await knex('page_cache').where({url})
@@ -23,9 +46,13 @@ const getCached = async (url) => {
   return undefined
 }
 
-const getPageHtml = async (url) => {
+export const getPageHtml = async (url, retryCount=9, useTor=false) => {
   console.log(`PUPPETEER_GET_PAGE:`, url)
-  const browser = await puppeteer.launch({args: ['--no-sandbox']});
+  const args = ['--no-sandbox'];
+  if (useTor) {
+    args.push('--proxy-server=socks5://127.0.0.1:9050')
+  }
+  const browser = await puppeteer.launch({args});
   const process = browser.process()
   const killBrowser = (retries=5) => {
     if (retries === 0) {
@@ -46,25 +73,29 @@ const getPageHtml = async (url) => {
     await page.setDefaultNavigationTimeout(90000);
     await page.goto(url);
     const html = await page.$eval("html", (e) => e.outerHTML);
-    // console.log()
-    // console.log('html:\n', html)
-    // console.log()
-    if (html.includes("502: Bad gateway") ||
+    await browser.close();
+    killBrowser() // always kill it - make sure its DEAD
+    if (html.includes("captcha") ||
+        html.includes("502: Bad gateway") ||
         html.includes("403 Forbidden") ||
         html.includes("Database maintenance") ||
         html.includes("Checking your browser before accessing") ||
         html.includes("Origin DNS error")) {
         console.log(`ERR: getPageHtml - BAD_RESULT_URL: \n ${url}`)
+        console.log('HTML:\n', html)
+        console.log()
+        await newTorSession()
+        if (retryCount > 0) {
+          retryCount--
+          return getPageHtml(url, retryCount, true)
+        }
     }
-    await browser.close();
-    killBrowser() // always kill it - make sure its DEAD
     return html
   } catch (err) {
     await browser.close();
     killBrowser() // always kill it - make sure its DEAD
     throw err
   }
-  
 }
 
 class LeetXSearch {
@@ -93,20 +124,28 @@ class LeetXSearch {
     return results;
   }
 
-  _getSearchUrl(term, category, mirror, page) {
+  // _getSearchUrl(term, category, mirror, page) {
+  //   term = encodeURIComponent(term)
+  //   const searchPath = SEARCH_PATH
+  //     .replace('$TERM', term)
+  //     .replace('$CATEGORY', category)
+  //     .replace('$PAGE', `${page}`)
+  //   return mirror + searchPath
+  // }
+
+  _getSearchUrl(term, mirror, page) {
     term = encodeURIComponent(term)
     const searchPath = SEARCH_PATH
       .replace('$TERM', term)
-      .replace('$CATEGORY', category)
       .replace('$PAGE', `${page}`)
     return mirror + searchPath
   }
-
-  async _search(term, category, page) {
+  
+  async _search(term, page) {
     const mirror = MIRRORS[Math.round(Math.random()*10) % MIRRORS.length]
     console.log('USING_MIRROR:', mirror)
-    const url = this._getSearchUrl(term, category, mirror, page)
-    const cacheUrl =  this._getSearchUrl(term, category, MIRRORS[0], page)
+    const url = this._getSearchUrl(term, mirror, page)
+    const cacheUrl =  this._getSearchUrl(term, MIRRORS[0], page)
     const cached = await getCached(cacheUrl)
     if (cached) {
       return cached
@@ -131,15 +170,44 @@ class LeetXSearch {
     }
   }
 
+  // async _search(term, category, page) {
+  //   const mirror = MIRRORS[Math.round(Math.random()*10) % MIRRORS.length]
+  //   console.log('USING_MIRROR:', mirror)
+  //   const url = this._getSearchUrl(term, category, mirror, page)
+  //   const cacheUrl =  this._getSearchUrl(term, category, MIRRORS[0], page)
+  //   const cached = await getCached(cacheUrl)
+  //   if (cached) {
+  //     return cached
+  //   }
+  //   let html
+  //   try {
+  //     html = await getPageHtml(url)
+  //   } catch (err) {
+  //     console.log('_search - FAILED_TO_GET_HTML:\n', err)
+  //   }
+  //   if (html) {
+  //     const results = this._parseSearchHtml(html)
+  //     const resultsJson = JSON.stringify(results).replace(/[\u0800-\uFFFF]/g, '')
+  //     // try {
+  //     //   await knex('page_cache').insert({url: cacheUrl, resultsJson})
+  //     // } catch (err) {
+  //     //   console.log('ERR (_search) inserting into page_cache:\n', err)
+  //     // }
+  //     return results
+  //   } else {
+  //     return []
+  //   }
+  // }
+
   async search(term, page) {
     term = term.trim()
-    let results: any[] = []
-    for (const category of CATEGORIES) {
-      const moreResults = await this._search(term, category, page)
-      results = results.concat(moreResults)
-    }
-    results.sort(sortBy('-seeders', 'leechers'));
-    return results
+    // let results: any[] = []
+    // for (const category of CATEGORIES) {
+    //   const moreResults = await this._search(term, category, page)
+    //   results = results.concat(moreResults)
+    // }
+    // results.sort(sortBy('-seeders', 'leechers'));
+    return await this._search(term, page)
   }
 
   _getTorrentInfoUrl(pathToTorrent, mirror) {
@@ -150,11 +218,11 @@ class LeetXSearch {
     const mirror = MIRRORS[Math.round(Math.random()*10) % MIRRORS.length]
     console.log('USING_MIRROR:', mirror)
     const url = this._getTorrentInfoUrl(pathToTorrent, mirror)
-    const cacheUrl =  this._getTorrentInfoUrl(pathToTorrent, MIRRORS[0])
-    const cached = await getCached(cacheUrl)
-    if (cached) {
-      return cached
-    }
+    // const cacheUrl =  this._getTorrentInfoUrl(pathToTorrent, MIRRORS[0])
+    // const cached = await getCached(cacheUrl)
+    // if (cached) {
+    //   return cached
+    // }
     let html
     try {
       html = await getPageHtml(url)
