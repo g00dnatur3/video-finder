@@ -23,7 +23,9 @@ router.get('/find', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const term = req.query.term;
     const [r1, r2] = await Promise.all([ThePirateBay.search(term), LeetXSearch.search(term)])
-    res.status(200).send({results: r1.concat(r2)})
+    const results = r1.concat(r2)
+    results.sort((a: any, b: any) => a.seeders > b.seeders ? -1 : 1)
+    res.status(200).send({results})
   }
   catch (err) {
     console.error(err)
