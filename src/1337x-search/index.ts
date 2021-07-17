@@ -119,12 +119,12 @@ class LeetXSearch {
         const seeders = parseInt(row.querySelectorAll('td.seeds')[0].childNodes[0].rawText)
         const leechers = parseInt(row.querySelectorAll('td.leeches')[0].childNodes[0].rawText)
         const pathToTorrent = row.querySelectorAll('td.name')[0].childNodes[1].getAttribute('href')
-        const magnetLink = await this.getMagnetLink(pathToTorrent)
+        //const magnetLink = await this.getMagnetLink(pathToTorrent)
         const name = row.querySelectorAll('td.name')[0].childNodes[1].rawText
         results.push({
           seeders,
           leechers,
-          magnetLink,
+          pathToTorrent,
           name
         })
       }
