@@ -22,8 +22,7 @@ const router: Router = Router();
 router.get('/find', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const term = req.query.term;
-    const r1 = await ThePirateBay.search(term)
-    const r2 = await LeetXSearch.search(term)
+    const [r1, r2] = await Promise.all([ThePirateBay.search(term), LeetXSearch.search(term)])
     res.status(200).send({results: r1.concat(r2)})
   }
   catch (err) {
