@@ -32,6 +32,19 @@ router.get('/find', async (req: Request, res: Response, next: NextFunction) => {
   }
 })
 
+router.get('/getlink', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const pathToTorrent = req.query.path
+    const link = await LeetXSearch.getMagnetLink(pathToTorrent)
+    res.status(200).send({link})
+  }
+  catch (err) {
+    console.error(err)
+    return next(new HttpError(`Internal error: ${err.message || err}`, 500))
+  }
+})
+
+
 router.get('/page', async (req: Request, res: Response, next: NextFunction) => {
   try {
     

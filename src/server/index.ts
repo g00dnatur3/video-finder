@@ -25,9 +25,11 @@ app.use(errorHanlder);
 
 const httpServer = http.createServer(app)
 
+
 const port = 9099
-httpServer.listen(port, () => {
-  console.log(`Listening on port ${port}`);
+const host = '192.168.1.40'
+httpServer.listen(port, host, () => {
+  console.log(`Listening on ${host}:${port}`);
 });
 
 // ;(async () => {
