@@ -21,7 +21,7 @@ const newTorSession = () => {
             }
             resolve(undefined)
           });
-        }, 200)
+        }, 100)
       }
     })
   })
@@ -48,9 +48,12 @@ const getCached = async (url) => {
   return undefined
 }
 
-export const getPageHtml = async (url, retryCount=10, useTor=false) => {
+export const getPageHtml = async (url, retryCount=4, useTor=false) => {
   console.log(`PUPPETEER_GET_PAGE:`, url)
   const args = ['--no-sandbox', '--incognito'];
+  if (!useTor) {
+    useTor = (Date.now() % 2) > 0
+  }
   if (useTor) {
     args.push('--proxy-server=socks5://127.0.0.1:9050')
   }
@@ -58,7 +61,7 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
   const browser = await puppeteer.launch(args);
   const context = await browser.createIncognitoBrowserContext();
   const process = browser.process()
-  const killBrowser = (retries=10) => {
+  const killBrowser = (retries=4) => {
     if (retries === 0) {
       return // exit condition
     }
@@ -69,7 +72,7 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
           retries--
           killBrowser(retries)
         }
-      }, 200);
+      }, 100);
     }
   }
   try {
@@ -86,8 +89,8 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
         html.includes("Checking your browser before accessing") ||
         html.includes("Origin DNS error")) {
         console.log(`ERR: getPageHtml - BAD_RESULT_URL: \n ${url}`)
-        // console.log('HTML:\n', html)
-        // console.log()
+        console.log('HTML:\n', html)
+        console.log()
         await newTorSession()
         if (retryCount > 0) {
           retryCount--
@@ -106,7 +109,7 @@ export const getPageHtml = async (url, retryCount=10, useTor=false) => {
 
 class LeetXSearch {
 
-  _parseSearchHtml(html) {
+  async _parseSearchHtml(html) {
     const results: any[] = []
     try {
       const root = HTMLParser.parse(html);
@@ -116,11 +119,12 @@ class LeetXSearch {
         const seeders = parseInt(row.querySelectorAll('td.seeds')[0].childNodes[0].rawText)
         const leechers = parseInt(row.querySelectorAll('td.leeches')[0].childNodes[0].rawText)
         const pathToTorrent = row.querySelectorAll('td.name')[0].childNodes[1].getAttribute('href')
+        const magnetLink = await this.getMagnetLink(pathToTorrent)
         const name = row.querySelectorAll('td.name')[0].childNodes[1].rawText
         results.push({
           seeders,
           leechers,
-          pathToTorrent,
+          magnetLink,
           name
         })
       }
@@ -163,8 +167,8 @@ class LeetXSearch {
       console.log('_search - FAILED_TO_GET_HTML:\n', err)
     }
     if (html) {
-      const results = this._parseSearchHtml(html)
-      const resultsJson = JSON.stringify(results).replace(/[\u0800-\uFFFF]/g, '')
+      const results = await this._parseSearchHtml(html)
+      // const resultsJson = JSON.stringify(results).replace(/[\u0800-\uFFFF]/g, '')
       // try {
       //   await knex('page_cache').insert({url: cacheUrl, resultsJson})
       // } catch (err) {
@@ -205,7 +209,7 @@ class LeetXSearch {
   //   }
   // }
 
-  async search(term, page) {
+  async search(term, page=0) {
     term = term.trim()
     // let results: any[] = []
     // for (const category of CATEGORIES) {
