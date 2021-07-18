@@ -52,8 +52,8 @@ router.get('/page', async (req: Request, res: Response, next: NextFunction) => {
     const url = req.query.url as string;
     // const term = req.query.term;
     // const results = await LeetXSearch.search(term, page)
-    const html = await getPageHtml(url)
-    res.status(200).send({html})
+    const htmls = await getPageHtml([url])
+    res.status(200).send({html: htmls[0]})
   }
   catch (err) {
     console.error(err)
