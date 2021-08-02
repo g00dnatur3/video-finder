@@ -50,9 +50,9 @@ const SEARCH_PATH = '/sort-search/$TERM/seeders/desc/$PAGE/'
 export const getPageHtml = async (urls: string[], retryCount=4, useTor=false) => {
   console.log(`PUPPETEER_GET_PAGE:`, urls)
   const args = ['--no-sandbox', '--incognito'];
-  if (!useTor) {
-    useTor = (Date.now() % 2) > 0
-  }
+  // if (!useTor) {
+  //   useTor = (Date.now() % 2) > 0
+  // }
   if (useTor) {
     args.push('--proxy-server=socks5://127.0.0.1:9050')
   }
