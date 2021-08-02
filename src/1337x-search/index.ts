@@ -1,4 +1,11 @@
-const puppeteer = require("puppeteer");
+// const puppeteer = require("puppeteer");
+
+const puppeteer = require('puppeteer-extra')
+
+// add stealth plugin and use defaults (all evasion techniques)
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+puppeteer.use(StealthPlugin())
+
 const HTMLParser = require('node-html-parser')
 const sortBy = require('sort-by')
 // const schema = require('warlock-schema')
@@ -50,7 +57,7 @@ export const getPageHtml = async (urls: string[], retryCount=4, useTor=false) =>
     args.push('--proxy-server=socks5://127.0.0.1:9050')
   }
   console.log('PUPPETEER_ARGS:', args)
-  const browser = await puppeteer.launch(args);
+  const browser = await puppeteer.launch({args, headless: true});
   const context = await browser.createIncognitoBrowserContext();
   const process = browser.process()
   const killBrowser = (retries=4) => {
