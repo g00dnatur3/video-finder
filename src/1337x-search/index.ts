@@ -80,7 +80,7 @@ export const getPageHtml = async (urls: string[], retryCount=4, useTor=false) =>
       const page = await context.newPage();
       await page.setDefaultNavigationTimeout(90000);
       console.log('PUPPETEER_GOTO_URL:', url)
-      await page.goto(url);
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
       const html = await page.$eval("html", (e) => e.outerHTML);
       if (html.includes("cf-captcha-info") ||
           html.includes("502: Bad gateway") ||
