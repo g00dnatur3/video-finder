@@ -60,7 +60,7 @@ export const getPageHtml = async (urls: string[], retryCount=4, useTor=false) =>
   const browser = await puppeteer.launch({args, headless: true});
   const context = await browser.createIncognitoBrowserContext();
   const process = browser.process()
-  const killBrowser = (retries=10) => {
+  const killBrowser = (retries=2) => {
     if (retries === 0) {
       return // exit condition
     }
