@@ -3,6 +3,7 @@ import HttpError from './HttpError'
 import LeetXSearch from '../1337x-search'
 import {getPageHtml} from '../1337x-search'
 import ThePirateBay from '../thepiratebay'
+import axios from 'axios'
 
 const router: Router = Router();
 
@@ -45,6 +46,17 @@ router.get('/getlink', async (req: Request, res: Response, next: NextFunction) =
   }
 })
 
+router.get('/proxy', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const url = req.query.url as string;
+    const {data} = await axios.get(url)
+    res.status(200).send(data)
+  }
+  catch (err) {
+    console.error(err)
+    return next(new HttpError(`Internal error: ${err.message || err}`, 500))
+  }
+})
 
 router.get('/page', async (req: Request, res: Response, next: NextFunction) => {
   try {
