@@ -10,7 +10,7 @@ import errorHanlder from './errorHandler';
 import Controller from './Controller';
 
 const app: express.Application = express();
-app.use(morgan('dev')); // logging middleware
+//app.use(morgan('dev')); // logging middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use('/api', Controller);
@@ -27,7 +27,7 @@ const httpServer = http.createServer(app)
 
 
 const port = 9099
-const host = '173.208.195.202'
+const host = '173.208.188.227'
 httpServer.listen(port, host, () => {
   console.log(`Listening on ${host}:${port}`);
 });
