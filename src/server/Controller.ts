@@ -48,12 +48,20 @@ router.get('/getlink', async (req: Request, res: Response, next: NextFunction) =
 
 router.get('/proxy', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const url = req.query.url as string;
-    const {data} = await axios.get(url)
-    res.status(200).send(data)
+    try {
+      const url = req.query.url as string;
+      const {data} = await axios.get(url)
+      res.status(200).send(data)
+    } catch (err) {
+      if (err.response && err.response.data) {
+        res.status(err.response.data.statusCode).send(err.response.data)
+      } else {
+        throw err
+      }
+    }
   }
   catch (err) {
-    console.error(err)
+    console.log(err)
     return next(new HttpError(`Internal error: ${err.message || err}`, 500))
   }
 })
