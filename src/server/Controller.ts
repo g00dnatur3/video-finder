@@ -50,8 +50,9 @@ router.get('/proxy', async (req: Request, res: Response, next: NextFunction) => 
   try {
     try {
       const url = req.query.url as string;
-      const {data} = await axios.get(url)
-      res.status(200).send(data)
+      // const {data} = await axios.get(url)
+      // res.status(200).send(data)
+      require('request').get(url).pipe(res);
     } catch (err) {
       if (err.response && err.response.data) {
         res.status(err.response.data.statusCode).send(err.response.data)
