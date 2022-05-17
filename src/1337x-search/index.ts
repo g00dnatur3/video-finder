@@ -78,7 +78,7 @@ export const getPageHtml = async (urls: string[], retryCount=4, useTor=false) =>
     const results: string[] = []
     for (const url of urls) {
       const page = await context.newPage();
-      await page.setDefaultNavigationTimeout(90000);
+      await page.setDefaultNavigationTimeout(10000);
       console.log('PUPPETEER_GOTO_URL:', url)
       await page.goto(url, { waitUntil: 'domcontentloaded' });
       const html = await page.$eval("html", (e) => e.outerHTML);
@@ -105,6 +105,9 @@ export const getPageHtml = async (urls: string[], retryCount=4, useTor=false) =>
     killBrowser() // always kill it - make sure its DEAD
     return results
   } catch (err) {
+    if (err.message.includes('timeout')) {
+      return []
+    }
     await browser.close();
     killBrowser() // always kill it - make sure its DEAD
     throw err
