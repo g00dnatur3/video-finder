@@ -126,8 +126,9 @@ class LeetXSearch {
         const seeders = parseInt(row.querySelectorAll('td.seeds')[0].childNodes[0].rawText)
         const leechers = parseInt(row.querySelectorAll('td.leeches')[0].childNodes[0].rawText)
         const pathToTorrent = row.querySelectorAll('td.name')[0].childNodes[1].getAttribute('href')
+        const category = row.querySelectorAll('td.name')[0].childNodes[0].getAttribute('href')
         const name = row.querySelectorAll('td.name')[0].childNodes[1].rawText
-        if (seeders >= 10) {
+        if (seeders >= 10 && category && !category.includes('xxx') && !category.includes('XXX')) {
           results.push({
             seeders,
             leechers,
