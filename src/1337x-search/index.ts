@@ -49,7 +49,7 @@ const SEARCH_PATH = '/sort-search/$TERM/seeders/desc/$PAGE/'
 
 export const getPageHtml = async (urls: string[], retryCount=4, useTor=false) => {
   console.log(`PUPPETEER_GET_PAGE:`, urls)
-  const args = ['--no-sandbox', '--incognito'];
+  const args = ['--no-sandbox'];
   // if (!useTor) {
   //   useTor = (Date.now() % 2) > 0
   // }
@@ -58,7 +58,6 @@ export const getPageHtml = async (urls: string[], retryCount=4, useTor=false) =>
   }
   console.log('PUPPETEER_ARGS:', args)
   const browser = await puppeteer.launch({args, headless: true});
-  const context = await browser.createIncognitoBrowserContext();
   const process = browser.process()
   const killBrowser = (retries=2) => {
     if (retries === 0) {
@@ -76,9 +75,10 @@ export const getPageHtml = async (urls: string[], retryCount=4, useTor=false) =>
   }
   try {
     const results: string[] = []
+    const pages = await browser.pages()
+    const page = pages[0]
+    await page.setDefaultNavigationTimeout(10000);
     for (const url of urls) {
-      const page = await context.newPage();
-      await page.setDefaultNavigationTimeout(10000);
       console.log('PUPPETEER_GOTO_URL:', url)
       await page.goto(url, { waitUntil: 'domcontentloaded' });
       const html = await page.$eval("html", (e) => e.outerHTML);
@@ -121,6 +121,9 @@ class LeetXSearch {
     try {
       const root = HTMLParser.parse(html);
       const tbody = root.querySelector('table.table-list.table.table-responsive.table-striped tbody')
+      if (!tbody) {
+        return results
+      }
       const rows = tbody.querySelectorAll('tr')
       for (const row of rows) {
         const seeders = parseInt(row.querySelectorAll('td.seeds')[0].childNodes[0].rawText)
@@ -131,9 +134,12 @@ class LeetXSearch {
 
         const name = row.querySelectorAll('td.name')[0].childNodes[1].rawText
 
-        console.log('!!!! - category --> ', category)
+        console.log()
+        console.log('<><><> - category:', category, ' name:', name)
+        console.log()
 
         if (seeders >= 10 && category && !category.includes('xxx') && !category.includes('XXX')) {
+          console.log('LeetXSearch._parseSearchHtml.push:', name)
           results.push({
             seeders,
             leechers,
