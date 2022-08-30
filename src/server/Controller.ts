@@ -8,6 +8,8 @@ import ffmpeg from 'fluent-ffmpeg';
 import ytdl from 'ytdl-core';
 import sanitize from 'sanitize-filename';
 
+ffmpeg.setFfmpegPath('/usr/bin/ffmpeg');
+
 const router: Router = Router();
 
 // router.get('/find', async (req: Request, res: Response, next: NextFunction) => {
