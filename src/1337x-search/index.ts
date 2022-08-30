@@ -104,7 +104,7 @@ export const getPageHtml = async (urls: string[], retryCount=4, useTor=false) =>
     await browser.close();
     killBrowser() // always kill it - make sure its DEAD
     return results
-  } catch (err) {
+  } catch (err: any) {
     if (err.message.includes('timeout')) {
       return []
     }

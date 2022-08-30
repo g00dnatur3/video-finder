@@ -19,12 +19,16 @@
     "body-parser": "^1.19.0",
     "cheerio": "^1.0.0-rc.10",
     "express": "^4.17.1",
+    "fluent-ffmpeg": "^2.1.2",
     "morgan": "^1.10.0",
+    "node-fetch": "^2.6.7",
     "node-html-parser": "^4.1.0",
     "puppeteer": "^10.1.0",
     "puppeteer-extra": "^3.1.18",
     "puppeteer-extra-plugin-stealth": "^2.7.8",
     "sort-by": "^1.2.0",
-    "tor-request": "^3.1.0"
+    "tor-request": "^3.1.0",
+    "ytdl-core": "git+https://github.com/g00dnatur3/node-ytdl-core.git",
+    "sanitize-filename": "^1.6.3"
   }
 }
