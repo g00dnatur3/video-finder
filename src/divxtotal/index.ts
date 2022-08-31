@@ -23,6 +23,7 @@ class DivxTotal {
     }
     const results: any = []
     const pageHtmls = await getPageHtml(pageLinks)
+    const promises: any = []
     for (let i=0; i<pageHtmls.length; i++) {
       const root = HTMLParser.parse(pageHtmls[i]);
       const nameElement = root.querySelectorAll('h1.orange.text-center')[0]
@@ -85,28 +86,36 @@ class DivxTotal {
       const torrentLink = torrentLinkElement!.getAttribute('href')
       //console.log('fetch torrentLink:', torrentLink)
       //console.log()
-      try {
-        const response = await fetch(torrentLink);
-        const body = await response.buffer();
-        const file = `/tmp/${Math.floor(Math.random() * 100)}` + `${Date.now()}.torrent`
-        //console.log('file:', file)
-        await fs.writeFile(file, body, "binary");
-        const { stdout } = await exec(`/usr/bin/transmission-show -m ${file}`);
-        const magnetLink = stdout.substring(0, stdout.length - 1);
-        await fs.unlink(file) 
-        //console.log('magnetLink:', magnetLink)
-        const seeders = 100;
-        const leechers = 100
-        results.push({
-          seeders,
-          leechers,
-          magnetLink,
-          name
-        })
-      } catch (err: any) {
-        console.log(err!.message)
-      }
+
+      const promise = new Promise(async (resolve, reject) => {
+        try {
+          const response = await fetch(torrentLink);
+          const body = await response.buffer();
+          const file = `/tmp/${Math.floor(Math.random() * 100)}` + `${Date.now()}.torrent`
+          //console.log('file:', file)
+          await fs.writeFile(file, body, "binary");
+          const { stdout } = await exec(`/usr/bin/transmission-show -m ${file}`);
+          const magnetLink = stdout.substring(0, stdout.length - 1);
+          await fs.unlink(file) 
+          //console.log('magnetLink:', magnetLink)
+          const seeders = 100;
+          const leechers = 100
+          results.push({
+            seeders,
+            leechers,
+            magnetLink,
+            name
+          })
+          resolve(undefined)
+        } catch (err: any) {
+          console.log(err!.message)
+          resolve(undefined)
+        }
+      })
+
+      promises.push(promise)
     }
+    await Promise.all(promises)
     return results
   }
 
