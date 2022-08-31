@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import HttpError from './HttpError'
 import LeetXSearch from '../1337x-search'
+import DivxTotal from '../divxtotal'
 import {getPageHtml} from '../1337x-search'
 import ThePirateBay from '../thepiratebay'
 import axios from 'axios'
@@ -28,10 +29,16 @@ const router: Router = Router();
 router.get('/find', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const term = req.query.term;
-    const [r1, r2] = await Promise.all([ThePirateBay.search(term), LeetXSearch.search(term)])
-    const results = r1.concat(r2)
-    results.sort((a: any, b: any) => a.seeders > b.seeders ? -1 : 1)
-    res.status(200).send({results})
+    const lang = req.query.lang;
+    if (lang && lang === 'es') {
+      const results = await DivxTotal.search(term)
+      res.status(200).send({results})
+    } else {
+      const [r1, r2] = await Promise.all([ThePirateBay.search(term), LeetXSearch.search(term)])
+      const results = r1.concat(r2)
+      results.sort((a: any, b: any) => a.seeders > b.seeders ? -1 : 1)
+      res.status(200).send({results})
+    }
   }
   catch (err: any) {
     console.error(err)
