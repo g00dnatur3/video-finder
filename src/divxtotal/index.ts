@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 const fs = require('fs').promises;
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
+const parseTorrent = require('parse-torrent')
 
 const SEARCH_URL = `https://www.divxtotal.fi/?s=TERM`
 
@@ -22,7 +23,27 @@ class DivxTotal {
       pageLinks.push(href)
     }
     const results: any = []
-    const pageHtmls = await getPageHtml(pageLinks)
+
+    // console.log()
+    // console.log('pageLinks:', pageLinks)
+
+    const pageLinks1 = pageLinks.splice(0, pageLinks.length/2)
+    const pageLinks2 = pageLinks.slice()
+
+    // console.log('pageLinks1:', pageLinks1)
+    // console.log('pageLinks2:', pageLinks2)
+    // console.log()
+
+    const values = await Promise.all([
+      getPageHtml(pageLinks1),
+      getPageHtml(pageLinks2)
+    ])
+
+    const pageHtmls = values[0].concat(values[1])
+
+    //console.log('pageHtmls.length:', pageHtmls.length)
+
+    //const pageHtmls = await getPageHtml(pageLinks)
     const promises: any = []
     for (let i=0; i<pageHtmls.length; i++) {
       const root = HTMLParser.parse(pageHtmls[i]);
@@ -91,13 +112,18 @@ class DivxTotal {
         try {
           const response = await fetch(torrentLink);
           const body = await response.buffer();
-          const file = `/tmp/${Math.floor(Math.random() * 100)}` + `${Date.now()}.torrent`
-          //console.log('file:', file)
-          await fs.writeFile(file, body, "binary");
-          const { stdout } = await exec(`/usr/bin/transmission-show -m ${file}`);
-          const magnetLink = stdout.substring(0, stdout.length - 1);
-          await fs.unlink(file) 
-          //console.log('magnetLink:', magnetLink)
+          // const file = `/tmp/${Math.floor(Math.random() * 100)}` + `${Date.now()}.torrent`
+          // //console.log('file:', file)
+          // await fs.writeFile(file, body, "binary");
+
+          const torrent = parseTorrent(body)
+          const magnetLink = parseTorrent.toMagnetURI(torrent)
+
+          // const { stdout } = await exec(`/usr/bin/transmission-show -m ${file}`);
+          // const magnetLink = stdout.substring(0, stdout.length - 1);
+          // await fs.unlink(file)
+          // console.log()
+          // console.log('magnetLink:', magnetLink)
           const seeders = 100;
           const leechers = 100
           results.push({
