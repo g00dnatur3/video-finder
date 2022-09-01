@@ -1,3 +1,8 @@
+process.on('unhandledRejection', (err: any) => {
+  // Will print "unhandledRejection err is not defined"
+  console.log('unhandledRejection', err.message);
+});
+
 import { NextFunction, Request, Response, Router } from 'express';
 import HttpError from './HttpError'
 import LeetXSearch from '../1337x-search'
