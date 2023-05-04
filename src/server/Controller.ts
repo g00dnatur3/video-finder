@@ -69,7 +69,7 @@ router.get('/proxy', (req: Request, res: Response, next: NextFunction) => {
       const url = req.query.url as string;
       // const {data} = await axios.get(url)
       // res.status(200).send(data)
-      require('request').get(url, {highWaterMark: 128 * 1024}).pipe(res, {highWaterMark: 128 * 1024});
+      require('request').get(url).pipe(res);
     } catch (err: any) {
       if (err.response && err.response.data) {
         res.status(err.response.data.statusCode).send(err.response.data)
